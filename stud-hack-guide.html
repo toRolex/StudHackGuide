@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudHackGuide - 大学生非正统学习指南</title>
+    <style>
+        /* 基础样式：重置默认样式 + 统一字体 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f7; /* 科技感浅灰背景 */
+            color: #1d1d1f; /* 深灰文字 */
+            line-height: 1.8; /* 行高1.8，提升段落可读性 */
+            padding-bottom: 80px; /* 底部留空间放导航按钮 */
+        }
+
+        /* 整体布局容器 */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 分类栏样式（现在位于图片下方） */
+        .top-categories {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 20;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            padding: 0 20px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+        }
+
+        .category-btn {
+            background: none;
+            border: none;
+            color: #1d1d1f;
+            font-size: 1rem;
+            padding: 8px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            white-space: nowrap;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .category-btn.active {
+            background-color: #ff6b00;
+            color: white;
+        }
+
+        .category-btn:hover:not(.active) {
+            background-color: #f0f0f0;
+        }
+
+        /* 封面区域基础样式 */
+        .book-cover {
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 80px 20px;
+            margin-bottom: 0; /* 不再需要底部间距，因为分类栏会紧接着 */
+            position: relative;
+        }
+
+        /* 封面渐变叠加层（确保文字可读性） */
+        .book-cover::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(rgba(30, 30, 50, 0.7), rgba(30, 30, 50, 0.7));
+            z-index: 1;
+        }
+
+        .book-cover > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .book-cover h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .book-cover .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .book-cover .tagline {
+            font-size: 1rem;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        /* 左侧导航栏样式 */
+        .sidebar {
+            width: 280px;
+            background-color: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            padding: 30px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto; /* 内容过长时可滚动 */
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar h2 {
+            font-size: 1.5rem;
+            color: #ff6b00; /* 主色调：活力橙色 */
+            padding: 0 25px 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar a {
+            color: #1d1d1f;
+            text-decoration: none;
+            font-size: 1.05rem;
+            display: block;
+            padding: 8px 25px;
+            transition: all 0.3s; /* hover过渡效果 */
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            color: #ff6b00; /* hover时变主色调 */
+            background-color: #fff8f0;
+            padding-left: 30px;
+        }
+
+        /* 主内容区域样式 */
+        .main-content {
+            flex: 1;
+            margin-left: 280px; /* 与侧边栏宽度一致 */
+            padding: 0 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* 内容板块容器 */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        /* 容器：控制内容宽度，避免过宽影响阅读 */
+        .container {
+            max-width: 800px; /* 最优阅读宽度（500-800px） */
+            margin: 0 auto;
+        }
+
+        /* 章节内容样式 */
+        .chapter {
+            background-color: white;
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            display: none; /* 默认隐藏所有章节 */
+            border-top: 4px solid #ff6b00;
+        }
+
+        /* 激活当前章节（显示） */
+        .chapter.active {
+            display: block;
+        }
+
+        .chapter h2 {
+            font-size: 1.8rem;
+            color: #ff6b00;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .chapter h3 {
+            font-size: 1.3rem;
+            margin: 25px 0 15px;
+            color: #333;
+        }
+
+        .chapter p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            text-align: justify; /* 段落两端对齐，提升美观度 */
+        }
+
+        .hack-tip {
+            background-color: #fff8e6;
+            border-left: 4px solid #ffcc00;
+            padding: 15px 20px;
+            margin: 25px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .hack-tip h4 {
+            color: #e6a600;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .hack-warning {
+            background-color: #ffebee;
+            border-left: 4px solid #ff4d4f;
+            padding: 15px 20px;
+            margin: 25px 0;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .hack-warning h4 {
+            color: #d32f2f;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        /* 图片处理 */
+        .chapter img {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 30px auto;
+            display: block; /* 图片居中 */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* 上下章导航按钮 */
+        .nav-buttons {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            padding: 15px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            max-width: 800px;
+            margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+        }
+
+        .nav-buttons button {
+            background-color: #ff6b00;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .nav-buttons button:disabled {
+            background-color: #ffa84d; /* 禁用时浅橙色 */
+            cursor: not-allowed;
+        }
+
+        .nav-buttons button:hover:not(:disabled) {
+            background-color: #e05a00; /* hover时加深颜色 */
+        }
+
+        /* 移动端菜单按钮 */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #ff6b00;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 30;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 响应式适配（手机端） */
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 250px;
+                z-index: 40; /* 确保在其他元素上方 */
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding-top: 10px;
+            }
+
+            .book-cover h1 {
+                font-size: 2.2rem;
+            }
+
+            .chapter {
+                padding: 25px;
+                margin-top: 20px;
+            }
+
+            .chapter h2 {
+                font-size: 1.5rem;
+            }
+
+            .nav-buttons button {
+                padding: 8px 18px;
+                font-size: 0.9rem;
+            }
+
+            .category-btn {
+                font-size: 0.9rem;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 移动端菜单按钮 -->
+    <button class="menu-toggle">☰</button>
+
+    <div class="app-container">
+        <!-- 左侧导航栏 - 将根据选中的分类动态变化 -->
+        <nav class="sidebar" id="main-sidebar">
+            <!-- 导航内容将通过JS动态生成 -->
+        </nav>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 学习技巧板块 - 图书馆/学习场景图片 -->
+            <div class="content-section active" data-category="study">
+                <!-- 书籍封面 -->
+                <header class="book-cover" style="background-image: url('https://picsum.photos/id/24/1200/600');">
+                    <h1>StudHackGuide</h1>
+                    <p class="subtitle">大学生非正统学习指南</p>
+                    <p class="tagline">—— 用巧劲而非死劲的校园生存法则</p>
+                </header>
+
+                <!-- 顶部分类栏（现在位于图片下方） -->
+                <div class="top-categories">
+                    <button class="category-btn active" data-category="study">学习技巧</button>
+                    <button class="category-btn" data-category="life">生活指南</button>
+                    <button class="category-btn" data-category="career">职业规划</button>
+                    <button class="category-btn" data-category="mental">心理健康</button>
+                    <button class="category-btn" data-category="social">社交技巧</button>
+                </div>
+
+                <div class="container">
+                    <!-- 章节内容区域 -->
+                    <main class="book-content">
+                        <!-- 第一章 -->
+                        <section id="study-1" class="chapter active" data-chapter="1">
+                            <h2>1. 选课Hack：避坑指南与隐藏副本</h2>
+                            <p>选课，作为大学生涯的第一关，直接决定了你未来一学期的幸福指数。普通玩家老老实实看课程简介，而Hack玩家懂得利用信息差，在规则边缘疯狂试探。</p>
+                            
+                            <h3>1.1 教师情报网的搭建</h3>
+                            <p>教务处的教师评价系统基本等于摆设，真正的情报掌握在大三、大四的"过来人"手中。建立你的情报网络，需要做到以下几点：</p>
+                            <ul style="margin-left: 30px; margin-bottom: 20px;">
+                                <li>加入至少3个不同专业的年级群，潜水观察</li>
+                                <li>认识2-3个热心的学长学姐，定期"供奉"奶茶</li>
+                                <li>建立Excel数据库，记录教师给分、点名频率、作业量</li>
+                            </ul>
+                            
+                            <div class="hack-tip">
+                                <h4>Hack小贴士</h4>
+                                <p>关注即将退休的老教授和新开课的年轻教师，前者懒得严格要求，后者怕评分太低影响续课，往往是"给分菩萨"。</p>
+                            </div>
+
+                            <h3>1.2 课程组合的阴阳平衡</h3>
+                            <p>不要选全是"水课"或全是"硬核课"，Hack讲究阴阳调和：</p>
+                            <p>理想组合 = 2门硬核专业课 + 1门考查课 + 1门公选课 + 1门体育/艺术实践课</p>
+                            <p>这种组合既能保证GPA，又能留出足够的自由时间，还不会引起教务处的注意。</p>
+                            
+                            <img src="https://picsum.photos/id/20/600/400" alt="大学生选课系统界面示意图">
+                        </section>
+
+                        <!-- 第二章 -->
+                        <section id="study-2" class="chapter" data-chapter="2">
+                            <h2>2. 课堂Hack：信息筛选与精力分配</h2>
+                            <p>上课不一定要全神贯注，Hack玩家懂得80/20法则：用20%的精力获取80%的关键信息，剩下的80%时间用于自我提升（或安心摸鱼）。</p>
+                            
+                            <h3>2.1 课堂信息的价值分级</h3>
+                            <p>不是所有课堂内容都值得记录，需要建立价值判断体系：</p>
+                            <p><strong>S级信息（必须记）</strong>：考试范围、作业要求、重点标记、评分标准</p>
+                            <p><strong>A级信息（选择性记）</strong>：核心概念、例题讲解、思维方法</p>
+                            <p><strong>B级信息（可忽略）</strong>：历史背景、教师个人经历、与考试无关的扩展内容</p>
+                            
+                            <div class="hack-tip">
+                                <h4>Hack小贴士</h4>
+                                <p>上课前5分钟和下课前10分钟是S级信息密集区，教师通常会在此时宣布重要事项。中间时段可以适当放松，但要保持"假装认真"的姿势。</p>
+                            </div>
+                        </section>
+
+                        <!-- 第三章 -->
+                        <section id="study-3" class="chapter" data-chapter="3">
+                            <h2>3. 考前Hack：72小时GPA拯救计划</h2>
+                            <p>平时不努力，考前徒伤悲？Hack玩家告诉你：72小时足够从挂科边缘拉回80分。关键在于方法，而非时间长短。</p>
+                            
+                            <h3>3.1 资料收集的优先级排序</h3>
+                            <p>考前最宝贵的不是时间，而是精准的复习资料。按优先级排序：</p>
+                            <ol style="margin-left: 30px; margin-bottom: 20px;">
+                                <li>历年考题（至少近3年，重复率往往高达40%）</li>
+                                <li>教师划的重点（直接对应80%的考点）</li>
+                                <li>学霸笔记（筛选3份以上交叉比对，找出共同内容）</li>
+                                <li>课件PPT（快速浏览，重点看加粗和标红部分）</li>
+                                <li>教材（最后没时间可以放弃，只看目录和小标题）</li>
+                            </ol>
+                        </section>
+
+                        <!-- 上下章导航按钮 -->
+                        <div class="nav-buttons">
+                            <button class="prev-btn" disabled>上一章</button>
+                            <button class="next-btn">下一章</button>
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            <!-- 生活指南板块 - 宿舍/生活场景图片 -->
+            <div class="content-section" data-category="life">
+                <!-- 书籍封面 -->
+                <header class="book-cover" style="background-image: url('https://picsum.photos/id/1060/1200/600');">
+                    <h1>生活指南</h1>
+                    <p class="subtitle">大学生存必备技巧</p>
+                    <p class="tagline">—— 舒适生活，高效学习的基础</p>
+                </header>
+
+                <!-- 顶部分类栏（现在位于图片下方） -->
+                <div class="top-categories">
+                    <button class="category-btn" data-category="study">学习技巧</button>
+                    <button class="category-btn active" data-category="life">生活指南</button>
+                    <button class="category-btn" data-category="career">职业规划</button>
+                    <button class="category-btn" data-category="mental">心理健康</button>
+                    <button class="category-btn" data-category="social">社交技巧</button>
+                </div>
+
+                <div class="container">
+                    <main class="book-content">
+                        <section id="life-1" class="chapter active" data-chapter="1">
+                            <h2>1. 宿舍生活Hack：有限空间的无限可能</h2>
+                            <p>宿舍不仅是睡觉的地方，更是你的第二个教室和休闲区。掌握这些技巧，让你的几平米空间舒适度提升300%。</p>
+                            
+                            <h3>1.1 空间收纳的魔法</h3>
+                            <p>小空间的收纳秘诀在于垂直利用和多功能家具：</p>
+                            <ul style="margin-left: 30px; margin-bottom: 20px;">
+                                <li>床底收纳箱：选择带滑轮的款式，方便取用</li>
+                                <li>墙上置物架：避开床的正上方，防止物品掉落</li>
+                                <li>床边挂篮：放置手机、眼镜等常用物品</li>
+                                <li>折叠家具：折叠桌、折叠椅，不用时可收纳</li>
+                            </ul>
+                            
+                            <div class="hack-tip">
+                                <h4>Hack小贴士</h4>
+                                <p>利用窗帘打造"私人空间"，既能遮光助眠，又能在室友熬夜时营造独立环境。选择深色遮光布+浅色装饰布的双层设计，兼顾实用性和美观度。</p>
+                            </div>
+                        </section>
+
+                        <section id="life-2" class="chapter" data-chapter="2">
+                            <h2>2. 食堂省钱攻略：吃得好又花得少</h2>
+                            <p>四年大学，食堂是绕不开的话题。掌握这些技巧，既能吃得营养健康，又能每月省下几百元生活费。</p>
+                            
+                            <h3>2.1 错峰就餐与隐藏菜单</h3>
+                            <p>大多数人不知道，食堂也有"最佳就餐时间"和"隐藏福利"：</p>
+                            <p>避开11:30-12:30的高峰时段，此时不仅人多，食材也可能不新鲜</p>
+                            <p>尝试在非高峰时段询问窗口阿姨是否有"员工餐"或"试吃品"</p>
+                            <p>关注食堂公众号，很多优惠活动和新品试吃都是通过线上发布的</p>
+                        </section>
+
+                        <!-- 上下章导航按钮 -->
+                        <div class="nav-buttons">
+                            <button class="prev-btn" disabled>上一章</button>
+                            <button class="next-btn">下一章</button>
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            <!-- 职业规划板块 - 职场/办公场景图片 -->
+            <div class="content-section" data-category="career">
+                <!-- 书籍封面 -->
+                <header class="book-cover" style="background-image: url('https://picsum.photos/id/180/1200/600');">
+                    <h1>职业规划</h1>
+                    <p class="subtitle">从校园到职场的无缝衔接</p>
+                    <p class="tagline">—— 未雨绸缪，赢在起跑线</p>
+                </header>
+
+                <!-- 顶部分类栏（现在位于图片下方） -->
+                <div class="top-categories">
+                    <button class="category-btn" data-category="study">学习技巧</button>
+                    <button class="category-btn" data-category="life">生活指南</button>
+                    <button class="category-btn active" data-category="career">职业规划</button>
+                    <button class="category-btn" data-category="mental">心理健康</button>
+                    <button class="category-btn" data-category="social">社交技巧</button>
+                </div>
+
+                <div class="container">
+                    <main class="book-content">
+                        <section id="career-1" class="chapter active" data-chapter="1">
+                            <h2>1. 实习Hack：找到有价值的实践机会</h2>
+                            <p>实习不仅是简历上的一笔，更是了解行业、积累经验的关键。但不是所有实习都值得做，学会筛选和争取高质量实习机会至关重要。</p>
+                            
+                            <h3>1.1 实习信息渠道对比</h3>
+                            <p>不同渠道的实习质量和竞争程度差异很大：</p>
+                            <ul style="margin-left: 30px; margin-bottom: 20px;">
+                                <li><strong>企业官网</strong>：最可靠，但竞争激烈，需提前准备</li>
+                                <li><strong>导师/校友推荐</strong>：成功率最高，质量有保障</li>
+                                <li><strong>招聘平台</strong>：信息多，但需要仔细甄别真伪</li>
+                                <li><strong>行业社群</strong>：常有机密职位，但需要一定人脉</li>
+                            </ul>
+                        </section>
+
+                        <!-- 上下章导航按钮 -->
+                        <div class="nav-buttons">
+                            <button class="prev-btn" disabled>上一章</button>
+                            <button class="next-btn">下一章</button>
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            <!-- 心理健康板块 - 自然/放松场景图片 -->
+            <div class="content-section" data-category="mental">
+                <!-- 书籍封面 -->
+                <header class="book-cover" style="background-image: url('https://picsum.photos/id/15/1200/600');">
+                    <h1>心理健康</h1>
+                    <p class="subtitle">大学生心理调适指南</p>
+                    <p class="tagline">—— 保持心态平衡，应对各种压力</p>
+                </header>
+
+                <!-- 顶部分类栏（现在位于图片下方） -->
+                <div class="top-categories">
+                    <button class="category-btn" data-category="study">学习技巧</button>
+                    <button class="category-btn" data-category="life">生活指南</button>
+                    <button class="category-btn" data-category="career">职业规划</button>
+                    <button class="category-btn active" data-category="mental">心理健康</button>
+                    <button class="category-btn" data-category="social">社交技巧</button>
+                </div>
+
+                <div class="container">
+                    <main class="book-content">
+                        <section id="mental-1" class="chapter active" data-chapter="1">
+                            <h2>1. 压力管理：与焦虑和平共处</h2>
+                            <p>大学并非只有轻松愉快，学业压力、社交压力、未来压力都会让人感到焦虑。学会管理压力，是每个大学生的必修课。</p>
+                            
+                            <h3>1.1 识别压力信号</h3>
+                            <p>压力往往会通过身体和情绪发出信号，及时识别能避免问题恶化：</p>
+                            <ul style="margin-left: 30px; margin-bottom: 20px;">
+                                <li>睡眠变化：入睡困难、早醒或嗜睡</li>
+                                <li>情绪波动：易怒、低落、焦虑或麻木</li>
+                                <li>注意力下降：难以集中，记忆力减退</li>
+                                <li>身体反应：头痛、胃痛、肌肉紧张</li>
+                            </ul>
+                        </section>
+
+                        <!-- 上下章导航按钮 -->
+                        <div class="nav-buttons">
+                            <button class="prev-btn" disabled>上一章</button>
+                            <button class="next-btn">下一章</button>
+                        </div>
+                    </main>
+                </div>
+            </div>
+
+            <!-- 社交技巧板块 - 群体/交流场景图片 -->
+            <div class="content-section" data-category="social">
+                <!-- 书籍封面 -->
+                <header class="book-cover" style="background-image: url('https://picsum.photos/id/26/1200/600');">
+                    <h1>社交技巧</h1>
+                    <p class="subtitle">大学生人际网络构建</p>
+                    <p class="tagline">—— 建立有价值的人际关系</p>
+                </header>
+
+                <!-- 顶部分类栏（现在位于图片下方） -->
+                <div class="top-categories">
+                    <button class="category-btn" data-category="study">学习技巧</button>
+                    <button class="category-btn" data-category="life">生活指南</button>
+                    <button class="category-btn" data-category="career">职业规划</button>
+                    <button class="category-btn" data-category="mental">心理健康</button>
+                    <button class="category-btn active" data-category="social">社交技巧</button>
+                </div>
+
+                <div class="container">
+                    <main class="book-content">
+                        <section id="social-1" class="chapter active" data-chapter="1">
+                            <h2>1. 人脉构建：校园社交的正确打开方式</h2>
+                            <p>大学不仅是学习知识的地方，也是积累人脉的黄金时期。良好的人际关系不仅能让大学生活更愉快，也会成为未来发展的重要资源。</p>
+                            
+                            <h3>1.1 有效社交的基本原则</h3>
+                            <p>社交不是盲目地认识更多人，而是建立有质量的连接：</p>
+                            <ul style="margin-left: 30px; margin-bottom: 20px;">
+                                <li>互惠原则：社交是双向的，先思考能为对方提供什么</li>
+                                <li>聚焦原则：专注于1-2个兴趣领域深入社交，而非广泛撒网</li>
+                                <li>真诚原则：伪装和奉承难以维持长久关系</li>
+                                <li>适度原则：保持适当距离，过度热情可能让人不适</li>
+                            </ul>
+                        </section>
+
+                        <!-- 上下章导航按钮 -->
+                        <div class="nav-buttons">
+                            <button class="prev-btn" disabled>上一章</button>
+                            <button class="next-btn">下一章</button>
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交互逻辑：分类切换 + 章节切换 + 导航栏联动 -->
+    <script>
+        // 定义各分类的导航内容
+        const categoryNavs = {
+            study: {
+                title: "学习技巧",
+                items: [
+                    { id: "study-1", chapter: 1, text: "1. 选课Hack：避坑指南与隐藏副本" },
+                    { id: "study-2", chapter: 2, text: "2. 课堂Hack：信息筛选与精力分配" },
+                    { id: "study-3", chapter: 3, text: "3. 考前Hack：72小时GPA拯救计划" }
+                ]
+            },
+            life: {
+                title: "生活指南",
+                items: [
+                    { id: "life-1", chapter: 1, text: "1. 宿舍生活Hack：有限空间的无限可能" },
+                    { id: "life-2", chapter: 2, text: "2. 食堂省钱攻略：吃得好又花得少" }
+                ]
+            },
+            career: {
+                title: "职业规划",
+                items: [
+                    { id: "career-1", chapter: 1, text: "1. 实习Hack：找到有价值的实践机会" }
+                ]
+            },
+            mental: {
+                title: "心理健康",
+                items: [
+                    { id: "mental-1", chapter: 1, text: "1. 压力管理：与焦虑和平共处" }
+                ]
+            },
+            social: {
+                title: "社交技巧",
+                items: [
+                    { id: "social-1", chapter: 1, text: "1. 人脉构建：校园社交的正确打开方式" }
+                ]
+            }
+        };
+
+        // 获取DOM元素
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        const contentSections = document.querySelectorAll('.content-section');
+        const sidebar = document.getElementById('main-sidebar');
+        const menuToggle = document.querySelector('.menu-toggle');
+        let currentCategory = 'study'; // 默认分类
+
+        // 初始化侧边栏
+        function initSidebar(category) {
+            const navData = categoryNavs[category];
+            let html = `<h2>${navData.title}</h2><ul>`;
+            
+            navData.items.forEach(item => {
+                html += `<li><a href="#${item.id}" class="toc-link ${item.chapter === 1 ? 'active' : ''}" 
+                    data-chapter="${item.chapter}" data-category="${category}">${item.text}</a></li>`;
+            });
+            
+            html += `</ul>`;
+            sidebar.innerHTML = html;
+            
+            // 为新生成的导航链接添加事件监听
+            attachTocLinkEvents();
+        }
+
+        // 为目录链接添加点击事件
+        function attachTocLinkEvents() {
+            const tocLinks = document.querySelectorAll('.toc-link');
+            tocLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetChapter = parseInt(link.dataset.chapter);
+                    const category = link.dataset.category;
+                    switchChapter(category, targetChapter);
+                    
+                    // 移动端点击后关闭侧边栏
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            });
+        }
+
+        // 切换分类
+        function switchCategory(category) {
+            // 更新分类按钮状态
+            categoryBtns.forEach(btn => {
+                if (btn.dataset.category === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // 更新内容区域
+            contentSections.forEach(section => {
+                if (section.dataset.category === category) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            
+            // 更新侧边栏
+            initSidebar(category);
+            
+            // 重置当前分类的章节为第一章
+            switchChapter(category, 1);
+            
+            currentCategory = category;
+        }
+
+        // 切换章节
+        function switchChapter(category, targetChapter) {
+            const section = document.querySelector(`.content-section[data-category="${category}"]`);
+            const chapters = section.querySelectorAll('.chapter');
+            const tocLinks = document.querySelectorAll(`.toc-link[data-category="${category}"]`);
+            const prevBtn = section.querySelector('.prev-btn');
+            const nextBtn = section.querySelector('.next-btn');
+            
+            // 更新章节显示
+            chapters.forEach(chapter => {
+                const chapterNum = parseInt(chapter.dataset.chapter);
+                if (chapterNum === targetChapter) {
+                    chapter.classList.add('active');
+                    chapter.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    chapter.classList.remove('active');
+                }
+            });
+            
+            // 更新目录链接状态
+            tocLinks.forEach(link => {
+                const linkChapter = parseInt(link.dataset.chapter);
+                if (linkChapter === targetChapter) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+            
+            // 更新导航按钮状态
+            prevBtn.disabled = targetChapter === 1;
+            nextBtn.disabled = targetChapter === chapters.length;
+            
+            // 为导航按钮添加点击事件
+            prevBtn.onclick = () => {
+                if (targetChapter > 1) {
+                    switchChapter(category, targetChapter - 1);
+                }
+            };
+            
+            nextBtn.onclick = () => {
+                if (targetChapter < chapters.length) {
+                    switchChapter(category, targetChapter + 1);
+                }
+            };
+        }
+
+        // 分类按钮点击事件
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchCategory(btn.dataset.category);
+            });
+        });
+
+        // 移动端菜单按钮点击事件
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        // 窗口大小改变时处理导航栏状态
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // 初始化页面
+        initSidebar(currentCategory);
+        switchChapter(currentCategory, 1);
+    </script>
+</body>
+</html>
+    
